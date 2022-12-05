@@ -222,6 +222,11 @@ options:
     aliases:
       - proxy_config
       - proxy_config_name
+  vpc_project_id:
+    description:
+      - GCP project id that hosts the VPC when using shared VPC.
+    type: str
+    required: False
   force:
     description:
       - Flag to remove CDP and cloud provider resources, but ignore cloud provider resources deletion errors.
@@ -676,6 +681,7 @@ class Environment(CdpModule):
         self.freeipa = self._get_param('freeipa')
         self.proxy = self._get_param('proxy')
         self.project = self._get_param('project')
+        self.vpc_project_id = self._get_param('vpc_project_id')
 
         self.delay = self._get_param('delay')
         self.timeout = self._get_param('timeout')
@@ -906,7 +912,7 @@ class Environment(CdpModule):
             payload['existingNetworkParams'] = dict(
                 networkName=self.vpc_id,
                 subnetNames=self.subnet_ids,
-                sharedProjectId=self.project
+                sharedProjectId=self.vpc_project_id if self.vpc_project_id else self.project
             )
             payload['usePublicIp'] = self.public_ip
             payload['logStorage'] = dict(serviceAccountEmail=self.log_identity, storageLocationBase=self.log_location, backupStorageLocationBase=self.backups_location)
@@ -1041,6 +1047,7 @@ def main():
             ), default=dict(instanceCountByGroup=2)),
             project=dict(required=False, type='str'),
             proxy=dict(required=False, type='str', aliases=['[proxy_config', 'proxy_config_name']),
+            vpc_project_id=dict(required=False, type='str'),
             cascade=dict(required=False, type='bool', default=False, aliases=['cascading']),
             force=dict(required=False, type='bool', default=False),
             wait=dict(required=False, type='bool', default=True),
